@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContractWatch – Contract Renewal Reminder Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header class="header">
+        <div class="container header-container">
+            <div>
+                <h1 class="header-title">ContractWatch</h1>
+                <p class="header-subtitle">Contract Renewal Reminder Tracker</p>
+            </div>
+            <div class="header-actions">
+                <button type="button" class="btn btn-secondary" onclick="loadAllData()" id="refreshBtn">
+                    ↻ Refresh Data
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Alert Notification Box -->
+        <div id="alertBox" class="alert-box" style="display: none;"></div>
+
+        <!-- Expiring Soon Notice Section (Next 30 Days) -->
+        <section class="section-card urgent-section">
+            <div class="section-header">
+                <div class="section-title-wrap">
+                    <span class="warning-icon">⚠️</span>
+                    <h2>Contracts Expiring Within Next 30 Days</h2>
+                </div>
+                <span class="badge badge-warning" id="expiringCountBadge">0 Contracts</span>
+            </div>
+            <p class="section-desc">Critical attention required: Contracts that have reached their renewal deadline or are expiring soon.</p>
+            
+            <div class="table-responsive">
+                <table class="data-table" id="expiringTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Vendor</th>
+                            <th>Contract Name</th>
+                            <th>End Date</th>
+                            <th>Notice Period</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expiringTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">No contracts expiring in the next 30 days.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Contract Form Section -->
+        <section class="section-card">
+            <div class="section-header">
+                <h2 id="formTitle">Add New Contract</h2>
+                <span id="formModeTag" class="badge badge-info">Create Mode</span>
+            </div>
+
+            <form id="contractForm" onsubmit="handleFormSubmit(event)">
+                <input type="hidden" id="contractId">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="vendor">Vendor Name <span class="required">*</span></label>
+                        <input type="text" id="vendor" placeholder="e.g. AWS Cloud Services, Acme Corp" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contractName">Contract Name <span class="required">*</span></label>
+                        <input type="text" id="contractName" placeholder="e.g. Cloud Hosting Agreement, Annual Support" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="startDate">Start Date <span class="required">*</span></label>
+                        <input type="date" id="startDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endDate">End Date <span class="required">*</span></label>
+                        <input type="date" id="endDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="noticePeriod">Notice Period (Days) <span class="required">*</span></label>
+                        <input type="number" id="noticePeriod" min="0" placeholder="e.g. 30" required>
+                        <small class="form-hint">Reminder triggers this many days before the End Date.</small>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        Add Contract
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancelEditBtn" onclick="clearForm()" style="display: none;">
+                        Cancel Edit
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- All Contracts Table Section -->
+        <section class="section-card">
+            <div class="section-header">
+                <div>
+                    <h2>All Tracked Contracts</h2>
+                    <p class="section-desc">Manage all vendor agreements, track renewal windows, renew or terminate contracts.</p>
+                </div>
+                <span class="badge badge-neutral" id="totalContractsBadge">0 Total</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="data-table" id="contractsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Vendor</th>
+                            <th>Contract Name</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Notice Period</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contractsTableBody">
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">Loading contracts...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Renewal Dialog Modal -->
+    <div id="renewModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Renew Contract</h3>
+                <button type="button" class="modal-close" onclick="closeRenewModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter the new expiration date for contract: <strong id="modalContractInfo"></strong></p>
+                <input type="hidden" id="renewContractId">
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="newEndDate">New End Date <span class="required">*</span></label>
+                    <input type="date" id="newEndDate" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeRenewModal()">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="submitRenewal()">Confirm Renewal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <p>ContractWatch &bull; Spring Boot + Spring Data JPA + MySQL &bull; College Project</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript File -->
+    <script src="script.js"></script>
+</body>
+</html>
